@@ -1,4 +1,4 @@
-import csv, json
+import csv, json, os
 
 counties = open('counties.csv')
 counties = [(row[2], row[3], row[7]) for row in csv.reader(counties)][1:]
@@ -43,16 +43,26 @@ values = Series('data/oe.data.0.Current')
 values = values.index('series_id', 'value')
 
 agg = []
+states = {}
 for state, code, county in counties:
     real_code = code.strip().rjust(7, '0')
     value_id = median_hourly[real_code]
     value = values[value_id]
 
-    agg.append({
+    entry = {
         'state': state,
         'msa_code': real_code,
         'county': county,
         'wage': value
-    })
+    }
 
-print json.dumps({ 'counties': agg })
+    agg.append(entry)
+    prior = states.get(state) or []
+    prior.append(entry)
+    states[state] = prior
+
+json.dump({ 'counties': agg }, open('all.json', 'w'))
+if not os.path.exists('states'):
+    os.mkdir('states')
+for state, data in states.iteritems():
+    json.dump({ 'counties': data }, open('states/' + state + '.json', 'w'))
