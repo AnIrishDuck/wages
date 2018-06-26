@@ -60,6 +60,12 @@ for state, code, county in counties:
         .replace(' town', '')
         .replace(' Parish', '')
         .replace(' city', '')
+        .replace('DeBaca', 'De Baca')
+        .replace('Ste. Genevieve', 'Sainte Genevieve')
+        .replace('Lagrange', 'LaGrange')
+        .replace('Northwest Somerset', 'Somerset')
+        .replace('Kennebunk', 'Kennebec')
+        .replace('Northwest Piscataquis unorganized territory', 'Piscataquis')
     )
 
     entry = {
