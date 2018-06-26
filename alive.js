@@ -22,13 +22,18 @@ fetch('./all.json').then((response) => {
         let median = () => document.getElementById('median')
 
         let wage = _.get(county, '0.wage') || _.min(amounts)
-        wage = _.get(county, '0.county') === 'Los Alamos County' ? _.min(amounts) : wage
+        let wowSuchWage = _.get(county, '0.county') === 'Los Alamos County'
+        wage = wowSuchWage ? _.min(amounts) : wage
         let r = Math.floor(255 * (1.0 - ((wage - _.min(amounts)) / (_.max(amounts) - _.min(amounts)))))
         let base = 'fill: rgba(' + r + ', 255, 0, 1.0)'
 
-        if(county.length === 0) {
+        if (county.length === 0) {
             console.log(child.id)
             base = 'fill: #f00'
+        }
+
+        if (wowSuchWage) {
+            base = 'fill: #f80'
         }
 
         child.style = base
