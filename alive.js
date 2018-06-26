@@ -7,28 +7,30 @@ let state = (el) => el.id.split(', ')[1]
 fetch('./all.json').then((response) => {
     return response.json()
 }).then((data) => {
+    let amounts = data.counties.map((c) => c.wage)
+
     counties.forEach((child) => {
         let county = data.counties.filter(
             (d) => d.county.replace(' County', '') + ', ' + d.state == child.id
         )
 
         let fill = (stateStyle, countyStyle) => {
-            counties
-                .filter((c) => state(c) === state(child))
-                .forEach((sibling) => {
-                sibling.style = stateStyle
-            })
             child.style = countyStyle || stateStyle
         }
 
         let name = () => document.getElementById('county-name')
         let median = () => document.getElementById('median')
 
+        let wage = _.get(county, '0.wage') || _.min(amounts)
+        wage = _.get(county, '0.county') === 'Los Alamos County' ? _.min(amounts) : wage
+        let r = Math.floor(255 * (1.0 - ((wage - _.min(amounts)) / (_.max(amounts) - _.min(amounts)))))
+        let base = 'fill: rgba(' + r + ', 255, 0, 1.0)'
+        child.style = base
         child.onmouseover = () => {
             fill('fill: #88c', 'fill: #00c')
             name().innerHTML = child.id
             median().innerHTML = (
-                'Median Wage: ' + _.trim(_.get(county, '0.wage'))
+                'Median Wage: ' + _.trim(wage)
             )
         }
 
@@ -37,7 +39,7 @@ fetch('./all.json').then((response) => {
         }
 
         child.onmouseout = () => {
-            fill('fill: #d0d0d0')
+            fill(base)
             name().innerHTML = ''
         }
     })
