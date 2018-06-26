@@ -27,7 +27,9 @@ fetch('./all.json').then((response) => {
         child.onmouseover = () => {
             fill('fill: #88c', 'fill: #00c')
             name().innerHTML = child.id
-            median().innerHTML = _.trim(_.get(county, '0.wage'))
+            median().innerHTML = (
+                'Median Wage: ' + _.trim(_.get(county, '0.wage'))
+            )
         }
 
         child.onclick = () => {
