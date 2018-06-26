@@ -7,8 +7,27 @@ let state = (el) => el.id.split(', ')[1]
 fetch('./all.json').then((response) => {
     return response.json()
 }).then((data) => {
-    let amounts = data.counties.map((c) => c.wage)
+    let stride = 1
+    let starts = [null].concat(_.range(13, 20, stride))
+    let ends = _.range(13, 20, stride).concat([null])
+    let bins = _.zip(starts, ends).map((a) => ({ start: a[0], end: a[1] }))
+    let inBin = (bin) => (n) =>
+        (!_.isNil(n)) && (n >= (bin.start || 0) && n < (bin.end || 100))
 
+    let colorCount = bins.length - 2
+    let gradient = (ix) => Math.floor(ix / colorCount * 255)
+    let colorRange = _.range(colorCount).map((ix) => (
+        'rgb(' + (255 - gradient(ix)) + ', 255, 0)'
+    ))
+    let colors = ['rgb(255, 196, 0)']
+                 .concat(colorRange)
+                 .concat(['rgb(0, 255, 255)'])
+
+    let color = (amount) => _.zip(bins, colors)
+                             .filter((pair) => inBin(pair[0])(amount))
+                             .map((pair) => pair[1])[0] || '#f0f'
+
+    let amounts = []
     counties.forEach((child) => {
         let county = data.counties.filter(
             (d) => d.county.replace(' County', '') + ', ' + d.state == child.id
@@ -21,28 +40,30 @@ fetch('./all.json').then((response) => {
         let name = () => document.getElementById('county-name')
         let median = () => document.getElementById('median')
 
-        let wage = _.get(county, '0.wage') || _.min(amounts)
-        let wowSuchWage = _.get(county, '0.county') === 'Los Alamos County'
-        wage = wowSuchWage ? _.min(amounts) : wage
-        let r = Math.floor(255 * (1.0 - ((wage - _.min(amounts)) / (_.max(amounts) - _.min(amounts)))))
-        let base = 'fill: rgba(' + r + ', 255, 0, 1.0)'
+        let wage = _.get(county, '0.wage')
+        if (!_.isNil(wage)) { amounts.push(wage) }
+        let base = 'fill: ' + color(wage)
 
         if (county.length === 0) {
             console.log(child.id)
-            base = 'fill: #f00'
-        }
-
-        if (wowSuchWage) {
-            base = 'fill: #f80'
+            base = 'fill: #fff'
         }
 
         child.style = base
         child.onmouseover = () => {
-            fill('fill: #88c', 'fill: #00c')
+            child.style.strokeWidth = 2
+            const _p = child.parentElement
+            _p.removeChild(child)
+            _p.appendChild(child)
             name().innerHTML = child.id
-            median().innerHTML = (
-                'Median Wage: ' + _.trim(wage)
-            )
+            const wageText = () => {
+                if (_.isNil(wage)) {
+                    return 'No Data'
+                } else {
+                    return 'Median Wage: ' + _.trim(wage)
+                }
+            }
+            median().innerHTML = wageText()
         }
 
         child.onclick = () => {
@@ -51,9 +72,42 @@ fetch('./all.json').then((response) => {
 
         child.onmouseout = () => {
             fill(base)
+            child.style.strokeWidth = 0.178287
             name().innerHTML = ''
         }
     })
+
+    let counts = bins.map((bin) =>
+        amounts.filter(inBin(bin)).length
+    )
+    let chart = SVG('histo-chart')
+    let bars = _.zip(bins, colors, counts).forEach((pair, ix) => {
+        let bin = pair[0]
+        let color = pair[1]
+        let count = pair[2]
+        console.log(bin, color, count, ix)
+        let label = () => {
+            let start = bin.start
+            let end = bin.end
+            let fmt = (v) => v.toFixed(2)
+            if (start === null) {
+                return '< ' + fmt(end)
+            } else if (end === null) {
+                return '> ' + fmt(start)
+            } else {
+                return start.toFixed(2) + ' - ' + (end - 0.01).toFixed(2)
+            }
+        }
+        chart
+            .rect(200 * (count / _.max(counts)), 15)
+            .fill(color)
+            .move(120, 20 + (ix * 17))
+
+        chart
+            .text(label())
+            .move(0, 20 + (ix * 17))
+    })
+
 })
 
 let countyScale = 0.56117729
@@ -72,4 +126,3 @@ let resize = () => {
 }
 
 resize()
-

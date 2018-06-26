@@ -2,10 +2,16 @@
 <head>
 <title>Wages</title>
 <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.10/lodash.min.js"></script>
+<script src="https://cdn.rawgit.com/svgdotjs/svg.js/master/dist/svg.min.js">
+</script>
 <style type="text/css">
  body{
   margin:0;
   padding:0 300px 0 0;
+ }
+ div#histo-chart {
+  width: 280px;
+  height: 300px;
  }
  div#right-sidebar{
   position:absolute;
@@ -20851,11 +20857,12 @@
   </g>
 </svg>
 
-<script src='./alive.js'></script>
 <div id="right-sidebar">
+    <div id="histo-chart"></div>
     <div id="county-name">
     </div>
     <div id="median">
     </div>
 </div>
+<script src='./alive.js'></script>
 </body>
