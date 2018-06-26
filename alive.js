@@ -81,6 +81,8 @@ fetch('./all.json').then((response) => {
         amounts.filter(inBin(bin)).length
     )
     let chart = SVG('histo-chart')
+    let pad = 20
+    let binStride = 17
     let bars = _.zip(bins, colors, counts).forEach((pair, ix) => {
         let bin = pair[0]
         let color = pair[1]
@@ -89,25 +91,29 @@ fetch('./all.json').then((response) => {
         let label = () => {
             let start = bin.start
             let end = bin.end
-            let fmt = (v) => v.toFixed(2)
+            let fmt = (v) => v.toFixed(0)
             if (start === null) {
-                return '< ' + fmt(end)
+                return '< $' + fmt(end)
             } else if (end === null) {
                 return '> ' + fmt(start)
             } else {
-                return start.toFixed(2) + ' - ' + (end - 0.01).toFixed(2)
+                return '$' + fmt(start) + ' - ' + fmt(end)
             }
         }
         chart
             .rect(200 * (count / _.max(counts)), 15)
             .fill(color)
-            .move(120, 20 + (ix * 17))
+            .stroke('#aaa')
+            .move(80, pad + (ix * binStride))
 
-        chart
+        let labelElement = chart
             .text(label())
-            .move(0, 20 + (ix * 17))
-    })
 
+        let dx = 80 - 10 - labelElement.length()
+        labelElement.move(dx, pad + (ix * binStride))
+    })
+    document.getElementById('histo-chart')
+            .style.height = (bins.length * binStride) + (pad * 2)
 })
 
 let countyScale = 0.56117729
