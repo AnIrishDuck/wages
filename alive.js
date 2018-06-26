@@ -25,6 +25,12 @@ fetch('./all.json').then((response) => {
         wage = _.get(county, '0.county') === 'Los Alamos County' ? _.min(amounts) : wage
         let r = Math.floor(255 * (1.0 - ((wage - _.min(amounts)) / (_.max(amounts) - _.min(amounts)))))
         let base = 'fill: rgba(' + r + ', 255, 0, 1.0)'
+
+        if(county.length === 0) {
+            console.log(child.id)
+            base = 'fill: #f00'
+        }
+
         child.style = base
         child.onmouseover = () => {
             fill('fill: #88c', 'fill: #00c')

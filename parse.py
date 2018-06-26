@@ -42,17 +42,30 @@ median_hourly = keys.index('area_code', 'series_id', {
 values = Series('data/oe.data.0.Current')
 values = values.index('series_id', 'value')
 
+# ' Borough'
+# ' Census Area'
+# ' town'
+# ' Parish'
+# ' city'
+
 agg = []
 states = {}
 for state, code, county in counties:
     real_code = code.strip().rjust(7, '0')
     value_id = median_hourly[real_code]
     value = values[value_id]
+    real_county = (county
+        .replace(' Borough', '')
+        .replace(' Census Area', '')
+        .replace(' town', '')
+        .replace(' Parish', '')
+        .replace(' city', '')
+    )
 
     entry = {
         'state': state,
         'msa_code': real_code,
-        'county': county,
+        'county': real_county,
         'wage': value
     }
 
