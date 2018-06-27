@@ -156,9 +156,9 @@ let stateMins = {
     AK: 9.84
 }
 
-fetch('./all.json').then((response) => {
-    return response.json()
-}).then((data) => {
+let json = (url) => fetch(url).then((v) => v.json())
+let blobs = [json('./all.json'), json('./areas.json')]
+Promise.all(blobs).then(([data, areas]) => {
     let stride = 1
     let { coloring, f, min, max, variable } = config
     let starts = [null].concat(_.range(min, max, stride))
@@ -175,41 +175,58 @@ fetch('./all.json').then((response) => {
 
     let amounts = []
     counties.forEach((child) => {
-        let county = data.counties.filter(
+        let county = _.first(data.counties.filter(
             (d) => d.county.replace(' County', '') + ', ' + d.state == child.id
-        )
+        ))
 
-        let fill = (stateStyle, countyStyle) => {
-            child.style = countyStyle || stateStyle
+        if (_.isUndefined(county)) {
+            console.log(child.id)
+            child.style = 'fill: #fff'
+            return
         }
+
+        county.element = child
 
         let name = () => document.getElementById('county-name')
         let median = () => document.getElementById('median')
 
-        let wage = _.get(county, '0.wage')
+        let { wage } = county
         if (!_.isNil(wage)) {
-            wage = f(parseFloat(wage), _.get(stateMins, county[0].state, 7.25))
+            wage = f(parseFloat(wage), _.get(stateMins, county.state, 7.25))
             amounts.push(parseFloat(wage))
         }
         let base = 'fill: ' + color(wage)
 
-        if (county.length === 0) {
-            console.log(child.id)
-            base = 'fill: #fff'
+        let siblings = () => {
+            return data.counties.filter((c) => !_.isUndefined(c.element))
+                .filter((c) => c.msa_code === county.msa_code)
         }
 
         child.style = base
         child.onmouseover = () => {
-            child.style.strokeWidth = 2
             const _p = child.parentElement
-            _p.removeChild(child)
-            _p.appendChild(child)
+            const fg = (element) => {
+                _p.removeChild(element)
+                _p.appendChild(element)
+            }
+            siblings().forEach(({ element }) => {
+                fg(element)
+                element.style.strokeWidth = 0.75
+            })
+            fg(child)
+            child.style.strokeWidth = 2.5
             name().innerHTML = child.id
             const wageText = () => {
                 if (_.isNil(wage)) {
                     return 'No Data'
                 } else {
-                    return variable + ': ' + wage.toFixed(2)
+                    let msa = _.get(areas, county.msa_code, '')
+                               .replace('nonmetropolitan area', 'NMA')
+                               .replace('Metropolitan Division', 'MD')
+                    return [
+                        variable + ': ' + wage.toFixed(2),
+                        msa
+                    ].join('<br />')
                 }
             }
             median().innerHTML = wageText()
@@ -220,8 +237,9 @@ fetch('./all.json').then((response) => {
         }
 
         child.onmouseout = () => {
-            fill(base)
-            child.style.strokeWidth = 0.178287
+            let original = 0.178287
+            child.style.strokeWidth = original
+            siblings().forEach((c) => { c.element.style.strokeWidth = original })
             name().innerHTML = ''
         }
     })
