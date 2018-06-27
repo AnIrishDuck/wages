@@ -189,6 +189,7 @@ Promise.all(blobs).then(([data, areas]) => {
 
         let name = () => document.getElementById('county-name')
         let median = () => document.getElementById('median')
+        let msa = () => document.getElementById('msa')
 
         let { wage } = county
         if (!_.isNil(wage)) {
@@ -203,6 +204,8 @@ Promise.all(blobs).then(([data, areas]) => {
         }
 
         child.style = base
+
+        let tip = document.getElementById('tooltip')
         child.onmouseover = () => {
             const _p = child.parentElement
             const fg = (element) => {
@@ -220,16 +223,19 @@ Promise.all(blobs).then(([data, areas]) => {
                 if (_.isNil(wage)) {
                     return 'No Data'
                 } else {
-                    let msa = _.get(areas, county.msa_code, '')
-                               .replace('nonmetropolitan area', 'NMA')
-                               .replace('Metropolitan Division', 'MD')
-                    return [
-                        variable + ': ' + wage.toFixed(2),
-                        msa
-                    ].join('<br />')
+                    return variable + ': ' + wage.toFixed(2)
                 }
             }
             median().innerHTML = wageText()
+            msa().innerHTML = _.get(areas, county.msa_code, '')
+                               .replace('nonmetropolitan area', 'NMA')
+                               .replace('Metropolitan Division', 'MD')
+            tip.style.visibility = 'visible'
+        }
+
+        child.onmousemove = (e) => {
+            tip.style.top = e.pageY + 'px'
+            tip.style.left = (e.pageX + 20) + 'px'
         }
 
         child.onclick = () => {
@@ -241,6 +247,9 @@ Promise.all(blobs).then(([data, areas]) => {
             child.style.strokeWidth = original
             siblings().forEach((c) => { c.element.style.strokeWidth = original })
             name().innerHTML = ''
+            median().innerHTML = ''
+            msa().innerHTML = ''
+            tip.style.visibility = 'hidden'
         }
     })
 
@@ -248,7 +257,6 @@ Promise.all(blobs).then(([data, areas]) => {
         amounts.filter(inBin(bin)).length
     )
     let chart = SVG('histo-chart')
-    let pad = 20
     let binStride = 17
     let bars = _.zip(bins, colors, counts).forEach((pair, ix) => {
         let bin = pair[0]
@@ -274,16 +282,16 @@ Promise.all(blobs).then(([data, areas]) => {
             .rect(200 * (count / _.max(counts)), 15)
             .fill(color)
             .stroke('#aaa')
-            .move(80, pad + (ix * binStride))
+            .move(80, ix * binStride)
 
         let labelElement = chart
             .text(label())
 
         let dx = 80 - 10 - labelElement.length()
-        labelElement.move(dx, pad + (ix * binStride))
+        labelElement.move(dx, ix * binStride)
     })
     document.getElementById('histo-chart')
-            .style.height = (bins.length * binStride) + (pad * 2)
+            .style.height = (bins.length * binStride)
 })
 
 let countyScale = 0.56117729

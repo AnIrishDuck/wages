@@ -15,14 +15,13 @@
  }
  div#right-sidebar{
   position:absolute;
-  top:0;
-  right:0;
+  bottom:10px;
+  right:10px;
   width:300px;
-  height:100%;
-  border-left: 1px solid #888;
+  border: 1px solid #888;
   padding: 10px;
   font-family: 'Lato', sans-serif;
-  background-color: white;
+  background-color: #f8f8f8;
  }
  div#chart-name {
   font-size: 2rem;
@@ -32,6 +31,20 @@
  }
  div#county-name {
   font-size: 1.5rem;
+ }
+ div#msa {
+  font-size: 0.75rem;
+ }
+ div#tooltip{
+  visibility: hidden;
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  max-width: 250px;
+  border: 1px solid #888;
+  padding: 5px;
+  font-family: 'Lato', sans-serif;
+  background-color: white;
  }
  @media screen{
   body>div#right-sidebar{
@@ -20865,16 +20878,14 @@
 </svg>
 
 <div id="right-sidebar">
-    <div id="chart-name">
-        US Median Wage
-    </div>
-    <div id="chart-subtitle">
-        (by County)
-    </div>
     <div id="histo-chart"></div>
+</div>
+<div id="tooltip">
     <div id="county-name">
     </div>
     <div id="median">
+    </div>
+    <div id="msa">
     </div>
 </div>
 <script src='./alive.js'></script>
