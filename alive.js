@@ -64,19 +64,26 @@ let charts = {
         variable: 'Median Wage',
         f: _.identity
     },
+    minWage: {
+        min: 8,
+        max: 12,
+        coloring: absoluteColors,
+        variable: 'Min Wage',
+        f: (wage, min) => min
+    },
     minWageDiff: {
         min: -15,
         max: -6,
         coloring: diffColors,
         variable: 'Min - Median Wage Gap',
-        f: (wage) => 7.25 - wage
+        f: (wage, min) => min - wage
     },
     inequality: {
         min: 11,
         max: 16,
         coloring: inequalityColors,
         variable: 'Min - Median Wage Gap',
-        f: (wage) => wage - 7.25 > 10 ? wage - 7.25 : null
+        f: (wage, min) => wage - min > 10 ? wage - min : null
     },
     damage: {
         min: -3,
@@ -89,22 +96,22 @@ let charts = {
         min: 0,
         max: 4,
         coloring: diffColors,
-        variable: 'Wage Difference',
-        f: (wage) => Math.max(0, (wage * 0.5) - 7.25)
+        variable: 'Wage Increase',
+        f: (wage, min) => (wage * 0.5) > min ? (wage * 0.5) - min : null
     },
     half: {
         min: 7,
         max: 13,
         coloring: absoluteColors,
         variable: 'New Minimum Wage',
-        f: (wage) => Math.max(wage * 0.5, 7.25)
+        f: (wage, min) => Math.max(wage * 0.5, min)
     },
     noChange: {
         min: 7,
         max: 8,
         coloring: ({ bins }) => bins.map(_.constant('rgb(128, 128, 128)')),
-        variable: 'Same Wage',
-        f: (wage) => (wage * 0.5) > 7.25 ? null : 7.25
+        variable: 'Same Minimum Wage',
+        f: (wage, min) => (wage * 0.5) > min ? null : min
     },
     diff15: {
         min: -2,
@@ -116,6 +123,38 @@ let charts = {
 }
 
 let config = charts.current
+
+let stateMins = {
+    ME: 10.00,
+    VT: 10.50,
+    MA: 11.00,
+    RI: 10.10,
+    CT: 10.10,
+    DE: 8.25,
+    DC: 12.50,
+    MD: 9.25,
+    NJ: 8.60,
+    NY: 10.40,
+    MI: 9.25,
+    OH: 8.30,
+    WV: 8.75,
+    IL: 8.25,
+    MN: 9.65,
+    MO: 7.85,
+    AR: 8.50,
+    NE: 9.00,
+    SD: 8.85,
+    CO: 10.20,
+    NM: 7.50,
+    AZ: 10.50,
+    MT: 8.30,
+    NV: 8.25,
+    WA: 11.50,
+    OR: 10.25,
+    CA: 11.00,
+    HI: 10.10,
+    AK: 9.84
+}
 
 fetch('./all.json').then((response) => {
     return response.json()
@@ -149,7 +188,7 @@ fetch('./all.json').then((response) => {
 
         let wage = _.get(county, '0.wage')
         if (!_.isNil(wage)) {
-            wage = f(parseFloat(wage))
+            wage = f(parseFloat(wage), _.get(stateMins, county[0].state, 7.25))
             amounts.push(parseFloat(wage))
         }
         let base = 'fill: ' + color(wage)
